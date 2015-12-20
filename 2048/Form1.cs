@@ -69,9 +69,66 @@ namespace _2048
                 }
         }
 
+        void move(int x1, int y1, int x2, int y2)
+        {
+            int i = 0;
+            int j = 0;
+            int x = (x1 - x2) / 3;
+            int y = (y1 - y2) / 3;
+            while (i < 4 && j < 4)
+            {
+                while (i < 4 && mem[x2 + i * x, y2 + i * y] == 0)
+                    i++;
+                if (i < 4 && j < 4 && j>0 && mem[x2 + (j - 1) * x, y2 + (j - 1) * y] == mem[x2 + i * x, y2 + i * y] )
+                {
+                    mem[x2 + (j - 1) * x, y2 + (j - 1) * y] += mem[x2 + i * x, y2 + i * y];
+                    i++;
+                }
+                else if(i<4 && j<4)
+                {
+                    mem[x2 + j * x, y2 + j * y] = mem[x2 + i * x, y2 + i * y];
+                    j++;
+                    i++;
+                }
+            }
+            for (; j < 4; j++) mem[x2 + j * x, y2 + j * y] = 0;
+        }
+
+        void moveUp()
+        {
+            for (int i = 0; i < 4; i++)
+                move(i, 3, i, 0);
+            UpdateScreen();
+        }
+
+        void moveDown()
+        {
+            for (int i = 0; i < 4; i++)
+                move(i, 0, i, 3);
+            UpdateScreen();
+        }
+
+        void moveLeft()
+        {
+            for (int i = 0; i < 4; i++)
+                move(3, i, 0, i);
+            UpdateScreen();
+        }
+
+        void moveRight()
+        {
+            for (int i = 0; i < 4; i++)
+                move(0, i, 3, i);
+            UpdateScreen();
+        }
+
         private void Forma_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.R) NewGame();
+            else if (e.KeyCode == Keys.Up) moveUp();
+            else if (e.KeyCode == Keys.Left) moveLeft();
+            else if (e.KeyCode == Keys.Right) moveRight();
+            else if (e.KeyCode == Keys.Down) moveDown();
         }
     }
 }

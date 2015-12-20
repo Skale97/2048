@@ -6,3 +6,12 @@ C:\Users\Marko\Desktop\2048\2048\obj\Debug\_2048.Properties.Resources.resources
 C:\Users\Marko\Desktop\2048\2048\obj\Debug\2048.csproj.GenerateResource.Cache
 C:\Users\Marko\Desktop\2048\2048\obj\Debug\2048.exe
 C:\Users\Marko\Desktop\2048\2048\obj\Debug\2048.pdb
+E:\GitHub\2048\2048\bin\Debug\2048.exe.config
+E:\GitHub\2048\2048\obj\Debug\2048.exe
+E:\GitHub\2048\2048\obj\Debug\2048.pdb
+E:\GitHub\2048\2048\bin\Debug\2048.exe
+E:\GitHub\2048\2048\bin\Debug\2048.pdb
+E:\GitHub\2048\2048\obj\Debug\2048.csprojResolveAssemblyReference.cache
+E:\GitHub\2048\2048\obj\Debug\_2048.Forma.resources
+E:\GitHub\2048\2048\obj\Debug\_2048.Properties.Resources.resources
+E:\GitHub\2048\2048\obj\Debug\2048.csproj.GenerateResource.Cache
