@@ -55,7 +55,7 @@ namespace _2048
                 j = r.Next(0, 4);
                 mem[i, j] += 2;
             }
-            while (mem[i, j] == 4);
+            while (mem[i, j] >= 4);
             UpdateScreen();
         }
 
@@ -98,6 +98,7 @@ namespace _2048
         {
             for (int i = 0; i < 4; i++)
                 move(i, 3, i, 0);
+            randomAdd();
             UpdateScreen();
         }
 
@@ -105,6 +106,7 @@ namespace _2048
         {
             for (int i = 0; i < 4; i++)
                 move(i, 0, i, 3);
+            randomAdd();
             UpdateScreen();
         }
 
@@ -112,6 +114,7 @@ namespace _2048
         {
             for (int i = 0; i < 4; i++)
                 move(3, i, 0, i);
+            randomAdd();
             UpdateScreen();
         }
 
@@ -119,7 +122,24 @@ namespace _2048
         {
             for (int i = 0; i < 4; i++)
                 move(0, i, 3, i);
+            randomAdd();
             UpdateScreen();
+        }
+
+        void randomAdd()
+        {
+            Random r = new Random();
+            bool b = true;
+            while (b)
+            {
+                int i = r.Next(0, 4);
+                int j = r.Next(0, 4);
+                if (mem[i, j] == 0)
+                {
+                    mem[i, j] = 2;
+                    b = false;  
+                }
+            }
         }
 
         private void Forma_KeyDown(object sender, KeyEventArgs e)
