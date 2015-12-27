@@ -16,9 +16,12 @@ namespace _2048
         Label[,] polje = new Label[4, 4];
         Label scoreLab = new Label();
         Label scoreVal = new Label();
+        Label gameOverLab = new Label();
         Random r = new Random();
+        int[][] seq = new int[4][];
         int[,] mem = new int[4, 4];
         int score = 0;
+        bool game_over = false;
 
         public Forma()
         {
@@ -56,6 +59,16 @@ namespace _2048
             scoreVal.Font = new Font("Arial", 24);
             this.Controls.Add(scoreVal);
 
+
+            gameOverLab.Text = "GAME\nOVER";
+            gameOverLab.Location = new Point(0, 40);
+            gameOverLab.Size = new Size(320, 320);
+            gameOverLab.TextAlign = ContentAlignment.MiddleCenter;
+            gameOverLab.Font = new Font("Arial", 60);
+            gameOverLab.BackColor = Color.Transparent;
+            gameOverLab.Visible = false;
+            this.Controls.Add(gameOverLab);
+
             NewGame();
         }
 
@@ -74,6 +87,14 @@ namespace _2048
             }
             while (mem[i, j] >= 4);
             score = 0;
+
+            foreach (Label p in polje)
+            {
+                p.Visible = true;
+            }
+            gameOverLab.Visible = false;
+            game_over = false;
+
             UpdateScreen();
         }
 
@@ -129,6 +150,7 @@ namespace _2048
                 randomAdd();
                 UpdateScreen();
             }
+            else gameOver('v');
         }
 
         void moveDown()
@@ -142,6 +164,7 @@ namespace _2048
                 randomAdd();
                 UpdateScreen();
             }
+            else gameOver('v');
         }
 
         void moveLeft()
@@ -155,6 +178,7 @@ namespace _2048
                 randomAdd();
                 UpdateScreen();
             }
+            else gameOver('h');
         }
 
         void moveRight()
@@ -168,6 +192,7 @@ namespace _2048
                 randomAdd();
                 UpdateScreen();
             }
+            else gameOver('h');
         }
 
         void randomAdd()
@@ -187,13 +212,87 @@ namespace _2048
             }
         }
 
+        void sequence(int[] seq)
+        {
+            foreach(int i in seq)
+            {
+                if (i == 0) moveUp();
+                else if (i == 1) moveDown();
+                else if (i == 2) moveLeft();
+                else if (i == 3) moveRight();
+            }
+        }
+
+        void AI(int[][] s)
+        {
+            seq = s;
+            int[] sc = new int[4];
+            for (int i = 0; i < 10; i++)
+            {
+                for(int j = 0; j<4; j++)
+                {
+                    NewGame();
+                    sequence(seq[j]);
+                    sc[j] = score;
+                }
+            }
+        }
+
+        void gameOver(char orientation)
+        {
+            game_over = true;
+
+            for (int i = 0; i < 16; i++)
+                if (mem[i / 4, i % 4] == 0)
+                {
+                    game_over = false;
+                    break;
+                }
+
+            if (game_over)
+            {
+                if (orientation == 'v')
+                {
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 3; j++)
+                            if (mem[j, i] == mem[j+1, i])
+                            {
+                                game_over = false;
+                                break;
+                            }
+                }
+                else if (orientation == 'h')
+                {
+
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 3; j++)
+                            if (mem[i, j] == mem[i, j+1])
+                            {
+                                game_over = false;
+                                break;
+                            }
+                }
+            }
+            if (game_over)
+            {
+                foreach(Label p in polje)
+                {
+                    p.Visible = false;
+                }
+                gameOverLab.Visible = true;
+            }
+        }
+
         private void Forma_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.R) NewGame();
-            else if (e.KeyCode == Keys.Up) moveUp();
-            else if (e.KeyCode == Keys.Left) moveLeft();
-            else if (e.KeyCode == Keys.Right) moveRight();
-            else if (e.KeyCode == Keys.Down) moveDown();
+            if (!game_over)
+            { 
+                if (e.KeyCode == Keys.Up) moveUp();
+                else if (e.KeyCode == Keys.Left) moveLeft();
+                else if (e.KeyCode == Keys.Right) moveRight();
+                else if (e.KeyCode == Keys.Down) moveDown();
+            }
         }
     }
 }
