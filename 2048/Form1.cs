@@ -14,7 +14,11 @@ namespace _2048
     public partial class Forma : System.Windows.Forms.Form
     {
         Label[,] polje = new Label[4, 4];
+        Label scoreLab = new Label();
+        Label scoreVal = new Label();
+        Random r = new Random();
         int[,] mem = new int[4, 4];
+        int score = 0;
 
         public Forma()
         {
@@ -30,7 +34,7 @@ namespace _2048
                 {
                     polje[i, j] = new Label();
                     polje[i, j].Text = "";
-                    polje[i, j].Location = new Point(i * veličinaPolja, j * veličinaPolja);
+                    polje[i, j].Location = new Point(i * veličinaPolja, j * veličinaPolja + 40);
                     polje[i, j].Size = new Size(veličinaPolja, veličinaPolja);
                     polje[i, j].BorderStyle = BorderStyle.FixedSingle;
                     polje[i, j].TextAlign = ContentAlignment.MiddleCenter;
@@ -38,14 +42,27 @@ namespace _2048
 
                     this.Controls.Add(polje[i, j]);
                 }
+            scoreLab.Text = "SCORE";
+            scoreLab.Location = new Point(0, 0);
+            scoreLab.Size = new Size(100, 40);
+            scoreLab.TextAlign = ContentAlignment.MiddleCenter;
+            scoreLab.Font = new Font("Arial", 18);
+            this.Controls.Add(scoreLab);
+
+            scoreVal.Text = "0";
+            scoreVal.Location = new Point(100, 0);
+            scoreVal.Size = new Size(300, 40);
+            scoreVal.TextAlign = ContentAlignment.MiddleCenter;
+            scoreVal.Font = new Font("Arial", 24);
+            this.Controls.Add(scoreVal);
+
             NewGame();
         }
 
         void NewGame()
         {
             for (int k = 0; k < 16; k++) mem[k / 4, k % 4] = 0;
-
-            Random r = new Random();
+            
             mem[r.Next(0, 4), r.Next(0, 4)] += 2;
             int i = r.Next(0, 4);
             int j = r.Next(0, 4);
@@ -56,6 +73,7 @@ namespace _2048
                 mem[i, j] += 2;
             }
             while (mem[i, j] >= 4);
+            score = 0;
             UpdateScreen();
         }
 
@@ -67,10 +85,12 @@ namespace _2048
                     if (mem[i, j] != 0) polje[i, j].Text = mem[i, j].ToString();
                     else polje[i, j].Text = "";
                 }
+            scoreVal.Text = score.ToString();
         }
 
         void move(int x1, int y1, int x2, int y2)
         {
+            bool b = false;
             int i = 0;
             int j = 0;
             int x = (x1 - x2) / 3;
@@ -83,6 +103,7 @@ namespace _2048
                 {
                     mem[x2 + (j - 1) * x, y2 + (j - 1) * y] += mem[x2 + i * x, y2 + i * y];
                     i++;
+                    score += mem[x2 + (j - 1) * x, y2 + (j - 1) * y];
                 }
                 else if(i<4 && j<4)
                 {
@@ -128,7 +149,6 @@ namespace _2048
 
         void randomAdd()
         {
-            Random r = new Random();
             bool b = true;
             while (b)
             {
@@ -137,6 +157,8 @@ namespace _2048
                 if (mem[i, j] == 0)
                 {
                     mem[i, j] = 2;
+                    while (r.Next(0, 4) == i && r.Next(0, 4) == j)
+                        mem[i, j] += mem[i, j];
                     b = false;  
                 }
             }

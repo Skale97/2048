@@ -33,7 +33,7 @@
             // Forma
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(320, 320);
+            this.ClientSize = new System.Drawing.Size(319, 361);
             this.Name = "Forma";
             this.Text = "2048";
             this.Load += new System.EventHandler(this.Forma_Load);
