@@ -88,7 +88,7 @@ namespace _2048
             scoreVal.Text = score.ToString();
         }
 
-        void move(int x1, int y1, int x2, int y2)
+        bool move(int x1, int y1, int x2, int y2)
         {
             bool b = false;
             int i = 0;
@@ -104,47 +104,70 @@ namespace _2048
                     mem[x2 + (j - 1) * x, y2 + (j - 1) * y] += mem[x2 + i * x, y2 + i * y];
                     i++;
                     score += mem[x2 + (j - 1) * x, y2 + (j - 1) * y];
+                    b = true;
                 }
                 else if(i<4 && j<4)
                 {
                     mem[x2 + j * x, y2 + j * y] = mem[x2 + i * x, y2 + i * y];
                     j++;
                     i++;
+                    if (j != i) b = true;
                 }
             }
             for (; j < 4; j++) mem[x2 + j * x, y2 + j * y] = 0;
+            return b;
         }
 
         void moveUp()
         {
+            bool b = false;
             for (int i = 0; i < 4; i++)
-                move(i, 3, i, 0);
-            randomAdd();
-            UpdateScreen();
+                if (move(i, 3, i, 0))
+                    b = true;
+            if (b)
+            {
+                randomAdd();
+                UpdateScreen();
+            }
         }
 
         void moveDown()
         {
+            bool b = false;
             for (int i = 0; i < 4; i++)
-                move(i, 0, i, 3);
-            randomAdd();
-            UpdateScreen();
+                if (move(i, 0, i, 3))
+                    b = true;
+            if (b)
+            {
+                randomAdd();
+                UpdateScreen();
+            }
         }
 
         void moveLeft()
         {
+            bool b = false;
             for (int i = 0; i < 4; i++)
-                move(3, i, 0, i);
-            randomAdd();
-            UpdateScreen();
+                if (move(3, i, 0, i))
+                    b = true;
+            if (b)
+            {
+                randomAdd();
+                UpdateScreen();
+            }
         }
 
         void moveRight()
         {
+            bool b = false;
             for (int i = 0; i < 4; i++)
-                move(0, i, 3, i);
-            randomAdd();
-            UpdateScreen();
+                if (move(0, i, 3, i))
+                    b = true;
+            if (b)
+            {
+                randomAdd();
+                UpdateScreen();
+            }
         }
 
         void randomAdd()
