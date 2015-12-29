@@ -18,11 +18,11 @@ namespace _2048
         Label scoreVal = new Label();
         Label gameOverLab = new Label();
         Random r = new Random();
-        int[][] seq = new int[4][];
+        int[][] seq = new int[100][];
         int[,] mem = new int[4, 4];
         int score = 0;
         bool game_over = false;
-
+        
         public Forma()
         {
             InitializeComponent();
@@ -216,16 +216,19 @@ namespace _2048
         {
             foreach(int i in seq)
             {
-                if (i == 0) moveUp();
-                else if (i == 1) moveDown();
-                else if (i == 2) moveLeft();
-                else if (i == 3) moveRight();
+                if (!game_over)
+                {
+                    if (i == 0) moveUp();
+                    else if (i == 1) moveDown();
+                    else if (i == 2) moveLeft();
+                    else if (i == 3) moveRight();
+                }
             }
         }
 
-        void AI(int[][] s)
+        void AI()//int[][] s)
         {
-            seq = s;
+            /*seq = s;
             int[] sc = new int[4];
             for (int i = 0; i < 10; i++)
             {
@@ -235,6 +238,45 @@ namespace _2048
                     sequence(seq[j]);
                     sc[j] = score;
                 }
+            }*/
+            string[] lines = new string[1000];
+            int brojseq = 0;
+
+            for(int i = 0; i<4; i++)
+            {
+                seq[i] = new int[10];
+                lines[i] = "Sekvenca #" + i + ": ";
+                for(int j = 0; j<10; j++)
+                {
+                    seq[i][j] = r.Next(0, 4);
+                    lines[i] += seq[i][j] + ", ";
+                }
+            }
+            using (System.IO.StreamWriter file =
+            new System.IO.StreamWriter(@"E:\GitHub\2048\sequences.txt"))
+                foreach (string line in lines)
+                    file.WriteLine(line);
+
+
+            for (int j = 0; j < 100; j++)
+            {
+                for (int i = 0; i < 1000; i++)
+                {
+                    brojseq = 0;
+                    while (!game_over)
+                    {
+                        sequence(seq[j]);
+                        brojseq++;
+                        this.Refresh();
+                    }
+                    lines[i] = brojseq + ", " + score;
+                    NewGame();
+                }
+
+                using (System.IO.StreamWriter file =
+                new System.IO.StreamWriter(@"E:\GitHub\2048\sequence" + j + "test.txt"))
+                    foreach (string line in lines)
+                        file.WriteLine(line);
             }
         }
 
@@ -286,6 +328,7 @@ namespace _2048
         private void Forma_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.R) NewGame();
+            if (e.KeyCode == Keys.A) AI();
             if (!game_over)
             { 
                 if (e.KeyCode == Keys.Up) moveUp();
