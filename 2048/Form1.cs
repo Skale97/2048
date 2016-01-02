@@ -242,7 +242,7 @@ namespace _2048
             string[] lines = new string[1000];
             int brojseq = 0;
 
-            for(int i = 0; i<4; i++)
+            for(int i = 0; i<100; i++)
             {
                 seq[i] = new int[10];
                 lines[i] = "Sekvenca #" + i + ": ";
@@ -256,28 +256,33 @@ namespace _2048
             new System.IO.StreamWriter(@"E:\GitHub\2048\sequences.txt"))
                 foreach (string line in lines)
                     file.WriteLine(line);
-
-
+            int lastscore = 1;
+            int blscore = 2;
+            for (int i = 0; i < 1000; i++) lines[i] = "";
             for (int j = 0; j < 100; j++)
             {
                 for (int i = 0; i < 1000; i++)
                 {
                     brojseq = 0;
-                    while (!game_over)
+                    lastscore = 1;
+                    blscore = 2;
+                    while (!game_over && lastscore!=score && blscore!=lastscore)
                     {
+                        blscore = lastscore;
+                        lastscore = score;
                         sequence(seq[j]);
                         brojseq++;
                         this.Refresh();
                     }
-                    lines[i] = brojseq + ", " + score;
+                    lines[i] += brojseq + ", " + score + ", ";
                     NewGame();
                 }
 
-                using (System.IO.StreamWriter file =
-                new System.IO.StreamWriter(@"E:\GitHub\2048\sequence" + j + "test.txt"))
-                    foreach (string line in lines)
-                        file.WriteLine(line);
             }
+            using (System.IO.StreamWriter file =
+            new System.IO.StreamWriter(@"E:\GitHub\2048\sequencetest.txt"))
+                foreach (string line in lines)
+                    file.WriteLine(line);
         }
 
         void gameOver(char orientation)
