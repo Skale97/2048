@@ -76,16 +76,15 @@ namespace _2048
         {
             for (int k = 0; k < 16; k++) mem[k / 4, k % 4] = 0;
             
-            mem[r.Next(0, 4), r.Next(0, 4)] += 2;
+            mem[r.Next(0, 4), r.Next(0, 4)] = 2;
             int i = r.Next(0, 4);
             int j = r.Next(0, 4);
-            do
+            while(mem[i, j] != 0)
             {
                 i = r.Next(0, 4);
                 j = r.Next(0, 4);
-                mem[i, j] += 2;
             }
-            while (mem[i, j] >= 4);
+            mem[i, j] = (r.Next(0, 10) < 9) ?  2 : 4;
             score = 0;
 
             foreach (Label p in polje)
@@ -242,7 +241,7 @@ namespace _2048
             string[] lines = new string[1000];
             int brojseq = 0;
 
-            for(int i = 0; i<100; i++)
+            for(int i = 0; i<6; i++)
             {
                 seq[i] = new int[10];
                 lines[i] = "Sekvenca #" + i + ": ";
@@ -252,11 +251,21 @@ namespace _2048
                     lines[i] += seq[i][j] + ", ";
                 }
             }
+
+            for (int i = 0; i < 3; i++)
+                transposition(ref seq[i], ref seq[i + 3], 2, 3, 4, 5);
+            for (int i = 0; i <6; i++)
+            {
+                for (int j = 0; j < seq[i].Length; j++)
+                {
+                    lines[i + 6] += seq[i][j] + ", ";
+                }
+           } 
             using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(@"E:\GitHub\2048\sequences.txt"))
+            new System.IO.StreamWriter(@"E:\GitHub\2048\test.txt"))
                 foreach (string line in lines)
                     file.WriteLine(line);
-            int lastscore = 1;
+            /*int lastscore = 1;
             int blscore = 2;
             for (int i = 0; i < 1000; i++) lines[i] = "";
             for (int j = 0; j < 100; j++)
@@ -279,10 +288,10 @@ namespace _2048
                 }
 
             }
-            using (System.IO.StreamWriter file =
+            /*using (System.IO.StreamWriter file =
             new System.IO.StreamWriter(@"E:\GitHub\2048\sequencetest.txt"))
                 foreach (string line in lines)
-                    file.WriteLine(line);
+                    file.WriteLine(line);*/
         }
 
         void gameOver(char orientation)
@@ -328,6 +337,81 @@ namespace _2048
                 }
                 gameOverLab.Visible = true;
             }
+        }
+
+        void deletion(ref int[] sequence, int position, int length)
+        {
+            int[] newSequence = new int [sequence.Length - length];
+
+            for (int i = 0; i < newSequence.Length; i++)
+                newSequence[i] = (i < position) ? sequence[i] : sequence[i + length];
+
+            sequence = new int[newSequence.Length];
+            sequence = newSequence;
+        }
+
+        void duplication(ref int[] sequence, int position, int length)
+        {
+            int[] newSequence = new int[sequence.Length + length];
+
+            for (int i = 0; i < newSequence.Length; i++)
+                newSequence[i] = (i < position + length) ? sequence[i] : sequence[i - length];
+
+            sequence = new int[newSequence.Length];
+            sequence = newSequence;
+        }
+
+        void inversion(ref int[] sequence, int position, int length)
+        {
+            int[] newSequence = new int[sequence.Length];
+
+            for (int i = 0; i < newSequence.Length; i++)
+                newSequence[i] = (i < position || i>=position + length) ? sequence[i] : sequence[position + length - (i - position + 1)];
+
+            sequence = new int[newSequence.Length];
+            sequence = newSequence;
+        }
+        
+        void insertion(ref int[] sequence1, ref int[] sequence2, int position1, int position2, int length)
+        {
+            int[] newSequence1 = new int[sequence1.Length + length];
+            int[] newSequence2 = new int[sequence2.Length - length];
+
+            for (int i = 0; i < newSequence1.Length; i++)
+                if (i < position1) newSequence1[i] = sequence1[i];
+                else if (i >= position1 && i < position1 + length) newSequence1[i] = sequence2[position2 + i - position1];
+                else newSequence1[i] = sequence1[i - length];
+
+            for (int i = 0; i < newSequence2.Length; i++)
+                newSequence2[i] = (i < position2) ? sequence2[i] : sequence2[i + length];
+
+            sequence1 = new int[newSequence1.Length];
+            sequence1 = newSequence1;
+
+            sequence2 = new int[newSequence2.Length];
+            sequence2 = newSequence2;
+        }
+
+        void transposition(ref int[] sequence1, ref int[] sequence2, int position1, int position2, int length1, int length2)
+        {
+            int[] newSequence1 = new int[sequence1.Length + length1 - length2];
+            int[] newSequence2 = new int[sequence2.Length + length2 - length1];
+
+            for (int i = 0; i < newSequence1.Length; i++)
+                if (i < position1) newSequence1[i] = sequence1[i];
+                else if (i >= position1 && i < position1 + length1) newSequence1[i] = sequence2[position2 + i - position1];
+                else newSequence1[i] = sequence1[i - length1 + length2];
+
+            for (int i = 0; i < newSequence2.Length; i++)
+                if (i < position2) newSequence2[i] = sequence2[i];
+                else if (i >= position2 && i < position2 + length2) newSequence2[i] = sequence1[position1 + i - position2];
+                else newSequence2[i] = sequence2[i - length2 + length1];
+
+            sequence1 = new int[newSequence1.Length];
+            sequence1 = newSequence1;
+
+            sequence2 = new int[newSequence2.Length];
+            sequence2 = newSequence2;
         }
 
         private void Forma_KeyDown(object sender, KeyEventArgs e)
