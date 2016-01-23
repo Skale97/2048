@@ -18,7 +18,6 @@ namespace _2048
         Label scoreVal = new Label();
         Label gameOverLab = new Label();
         Random r = new Random();
-        int[][] seq = new int[100][];
         int[,] mem = new int[4, 4];
         int score = 0;
         bool game_over = false;
@@ -69,32 +68,34 @@ namespace _2048
             gameOverLab.Visible = false;
             this.Controls.Add(gameOverLab);
 
-            NewGame();
+            NewGame(true);
         }
 
-        void NewGame()
+        void NewGame(bool ai)
         {
             for (int k = 0; k < 16; k++) mem[k / 4, k % 4] = 0;
             
-            mem[r.Next(0, 4), r.Next(0, 4)] = 2;
-            int i = r.Next(0, 4);
-            int j = r.Next(0, 4);
+            mem[r.Next(4), r.Next(4)] = 2;
+            int i = r.Next(4);
+            int j = r.Next(4);
             while(mem[i, j] != 0)
             {
-                i = r.Next(0, 4);
-                j = r.Next(0, 4);
+                i = r.Next(4);
+                j = r.Next(4);
             }
-            mem[i, j] = (r.Next(0, 10) < 9) ?  2 : 4;
+            mem[i, j] = (r.Next(10) < 9) ?  2 : 4;
             score = 0;
 
-            foreach (Label p in polje)
+            if (ai)
             {
-                p.Visible = true;
+                foreach (Label p in polje)
+                    p.Visible = true;
+
+                UpdateScreen();
             }
+
             gameOverLab.Visible = false;
             game_over = false;
-
-            UpdateScreen();
         }
 
         void UpdateScreen()
@@ -199,12 +200,12 @@ namespace _2048
             bool b = true;
             while (b)
             {
-                int i = r.Next(0, 4);
-                int j = r.Next(0, 4);
+                int i = r.Next(4);
+                int j = r.Next(4);
                 if (mem[i, j] == 0)
                 {
                     mem[i, j] = 2;
-                    while (r.Next(0, 4) == i && r.Next(0, 4) == j)
+                    while (r.Next(4) == i && r.Next(4) == j)
                         mem[i, j] += mem[i, j];
                     b = false;  
                 }
@@ -225,73 +226,101 @@ namespace _2048
             }
         }
 
-        void AI()//int[][] s)
+        void AI()
         {
-            /*seq = s;
-            int[] sc = new int[4];
-            for (int i = 0; i < 10; i++)
-            {
-                for(int j = 0; j<4; j++)
-                {
-                    NewGame();
-                    sequence(seq[j]);
-                    sc[j] = score;
-                }
-            }*/
-            string[] lines = new string[1000];
-            int brojseq = 0;
+            int n = 120;
+            int ngen = 1000;
+            Label progress = new Label();
+            int[][] seq = new int[n][];
+            int[] score = new int[n];
+            int[] order = new int[n];
+            string[] lines = new string[ngen];
+            int lastscore = 1;
+            int blscore = 2;
+            int[] bestscore = new int[ngen];
 
-            for(int i = 0; i<6; i++)
+            scoreLab.Visible = false;
+            gameOverLab.Visible = false;
+            for (int i = 0; i < 16; i++) polje[i / 4, i % 4].Visible = false;
+
+            progress.Text = "START";
+            progress.Location = new Point(0, 0);
+            progress.Size = new Size(100, 40);
+            progress.TextAlign = ContentAlignment.MiddleCenter;
+            progress.Font = new Font("Arial", 18);
+            this.Controls.Add(progress);
+
+            for (int i = 0; i < n; i++) order[i] = i; //init order array which is used for sorting seq by score
+            for (int i = 0; i < n; i++) //init seq
             {
-                seq[i] = new int[10];
-                lines[i] = "Sekvenca #" + i + ": ";
-                for(int j = 0; j<10; j++)
+                seq[i] = new int[r.Next(1, 100)];
+                for (int j = 0; j < seq[i].Length; j++)
+                    seq[i][j] = r.Next(4);
+            }
+            for (int generation = 0; generation < ngen; generation++)
+            {
+                for (int i = (generation == 0) ? 0 : 20; i < n; i++)
                 {
-                    seq[i][j] = r.Next(0, 4);
-                    lines[i] += seq[i][j] + ", ";
+                    for (int j = 0; j < 10; j++)
+                    {
+                        lastscore = 1;
+                        blscore = 2;
+                        while (!game_over && lastscore != this.score && blscore != lastscore) //checks if game is over and if it got stuck
+                        {
+                            blscore = lastscore;
+                            lastscore = this.score;
+                            sequence(seq[i]);
+                        }
+                        score[i] += this.score;
+                        NewGame(false);
+                    }
+                    score[i] /= 10;
+                    progress.Text = (generation * 100 + i).ToString();
+                    scoreVal.Text = score[i].ToString();
+                    gameOverLab.Visible = false;
+                    this.Refresh();
                 }
+                Quicksort(ref score, ref order, 0, n - 1); //sorts score an saves order
+
+                bestscore[generation] = score[0];
+
+                reorder(ref seq, order);
+
+                for (int i = 16; i < 20; i++) //init seq
+                {
+                    seq[i] = new int[r.Next(1, 100)];
+                    for (int j = 0; j < seq[i].Length; j++)
+                        seq[i][j] = r.Next(4);
+                }
+
+                mutation(ref seq);
             }
 
-            for (int i = 0; i < 3; i++)
-                transposition(ref seq[i], ref seq[i + 3], 2, 3, 4, 5);
-            for (int i = 0; i <6; i++)
-            {
-                for (int j = 0; j < seq[i].Length; j++)
-                {
-                    lines[i + 6] += seq[i][j] + ", ";
-                }
-           } 
-            using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(@"E:\GitHub\2048\test.txt"))
+            for (int k = 0; k < ngen; k++) lines[k] = bestscore[k].ToString();
+            
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"E:\GitHub\2048\bestScores.txt"))
                 foreach (string line in lines)
                     file.WriteLine(line);
-            /*int lastscore = 1;
-            int blscore = 2;
-            for (int i = 0; i < 1000; i++) lines[i] = "";
-            for (int j = 0; j < 100; j++)
-            {
-                for (int i = 0; i < 1000; i++)
-                {
-                    brojseq = 0;
-                    lastscore = 1;
-                    blscore = 2;
-                    while (!game_over && lastscore!=score && blscore!=lastscore)
-                    {
-                        blscore = lastscore;
-                        lastscore = score;
-                        sequence(seq[j]);
-                        brojseq++;
-                        this.Refresh();
-                    }
-                    lines[i] += brojseq + ", " + score + ", ";
-                    NewGame();
-                }
 
+            for (int i = 0; i < n; i++) //init seq
+            {
+                for (int j = 0; j < seq[i].Length; j++)
+                    lines[i] += seq[i][j].ToString() + ", ";
             }
-            /*using (System.IO.StreamWriter file =
-            new System.IO.StreamWriter(@"E:\GitHub\2048\sequencetest.txt"))
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"E:\GitHub\2048\seq.txt"))
                 foreach (string line in lines)
-                    file.WriteLine(line);*/
+                    file.WriteLine(line);
+
+            scoreLab.Visible = true;
+        }
+
+        void reorder(ref int[][] A, int[] order)
+        {
+            int[][] tempA = new int[A.Length][]; //sorts seq by order
+            tempA = A;
+            for (int i = 0; i < A.Length; i++)
+                A[i] = tempA[order[i]];
         }
 
         void gameOver(char orientation)
@@ -336,6 +365,30 @@ namespace _2048
                     p.Visible = false;
                 }
                 gameOverLab.Visible = true;
+            }
+        }
+
+        void mutation(ref int[][] s)
+        {
+            for (int i = 20; i < 120; i+=5)
+            {
+                int length = r.Next(s[i].Length - 1);
+                deletion(ref s[i], r.Next(s[i].Length - length), length);
+
+                length = r.Next(s[i + 1].Length - 1);
+                duplication(ref s[i + 1], r.Next(s[i + 1].Length - length), length);
+
+                length = r.Next(s[i + 2].Length - 1);
+                inversion(ref s[i + 2], r.Next(s[i + 2].Length - length), length);
+
+                int rseq = r.Next(20);
+                length = r.Next(s[rseq].Length - 1);
+                insertion(ref s[i + 3], ref s[rseq], r.Next(s[i + 3].Length), r.Next(s[rseq].Length - length), length);
+
+                length = r.Next(s[i + 4].Length - 1);
+                rseq = r.Next(20);
+                int length2 = r.Next(s[rseq].Length - 1);
+                transposition(ref s[i + 4], ref s[rseq], r.Next(s[i + 4].Length - length), r.Next(s[rseq].Length - length2), length2, length);
             }
         }
 
@@ -414,9 +467,40 @@ namespace _2048
             sequence2 = newSequence2;
         }
 
+        void Quicksort(ref int[] A, ref int[] o, int start, int end)
+        {
+            if(start < end)
+            {
+                int partiotionIndex = start;
+                int pivot = A[end];
+
+                for (int i = start; i < end; i++)
+                    if (A[i] >= pivot)
+                    {
+                        int a = A[i];
+                        A[i] = A[partiotionIndex];
+                        A[partiotionIndex] = a;
+                        a = o[i];
+                        o[i] = o[partiotionIndex];
+                        o[partiotionIndex] = a;
+
+                        partiotionIndex++;
+                    }
+                int b = A[end];
+                A[end] = A[partiotionIndex];
+                A[partiotionIndex] = b;
+                b = o[end];
+                o[end] = o[partiotionIndex];
+                o[partiotionIndex] = b;
+
+                Quicksort(ref A, ref o, start, partiotionIndex - 1);
+                Quicksort(ref A, ref o, partiotionIndex + 1, end);
+            }
+        }
+
         private void Forma_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.R) NewGame();
+            if (e.KeyCode == Keys.R) NewGame(true);
             if (e.KeyCode == Keys.A) AI();
             if (!game_over)
             { 
