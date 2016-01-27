@@ -212,9 +212,9 @@ namespace _2048
             }
         }
 
-        void sequence(int[] seq)
+        void sequence(byte[] seq)
         {
-            foreach(int i in seq)
+            foreach(byte i in seq)
             {
                 if (!game_over)
                 {
@@ -223,18 +223,19 @@ namespace _2048
                     else if (i == 2) moveLeft();
                     else if (i == 3) moveRight();
                 }
+              //  this.Refresh();
             }
         }
 
         void AI()
         {
             int n = 120;
-            int ngen = 1000;
+            int ngen = 50;
             Label progress = new Label();
-            int[][] seq = new int[n][];
+            byte[][] seq = new byte[n][];
             int[] score = new int[n];
             int[] order = new int[n];
-            string[] lines = new string[ngen];
+            string[] lines = new string[1000];
             int lastscore = 1;
             int blscore = 2;
             int[] bestscore = new int[ngen];
@@ -253,15 +254,15 @@ namespace _2048
             for (int i = 0; i < n; i++) order[i] = i; //init order array which is used for sorting seq by score
             for (int i = 0; i < n; i++) //init seq
             {
-                seq[i] = new int[r.Next(1, 100)];
+                seq[i] = new byte[r.Next(1, 100)];
                 for (int j = 0; j < seq[i].Length; j++)
-                    seq[i][j] = r.Next(4);
+                    seq[i][j] = (byte) r.Next(4);
             }
             for (int generation = 0; generation < ngen; generation++)
             {
                 for (int i = (generation == 0) ? 0 : 20; i < n; i++)
                 {
-                    for (int j = 0; j < 10; j++)
+                    for (int j = 0; j < 5; j++)
                     {
                         lastscore = 1;
                         blscore = 2;
@@ -274,7 +275,7 @@ namespace _2048
                         score[i] += this.score;
                         NewGame(false);
                     }
-                    score[i] /= 10;
+                    score[i] /= 5;
                     progress.Text = (generation * 100 + i).ToString();
                     scoreVal.Text = score[i].ToString();
                     gameOverLab.Visible = false;
@@ -288,22 +289,25 @@ namespace _2048
 
                 for (int i = 16; i < 20; i++) //init seq
                 {
-                    seq[i] = new int[r.Next(1, 100)];
+                    seq[i] = new byte[r.Next(1, 100)];
                     for (int j = 0; j < seq[i].Length; j++)
-                        seq[i][j] = r.Next(4);
+                        seq[i][j] = (byte) r.Next(4);
                 }
 
                 mutation(ref seq);
             }
-
-            for (int k = 0; k < ngen; k++) lines[k] = bestscore[k].ToString();
             
+            scoreLab.Visible = true;
+            
+            for (int k = 0; k < ngen; k++) lines[k] = bestscore[k].ToString();
+
             using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"E:\GitHub\2048\bestScores.txt"))
                 foreach (string line in lines)
                     file.WriteLine(line);
 
-            for (int i = 0; i < n; i++) //init seq
+            for (int i = 0; i < ngen; i++) //init seq
             {
+                lines[i] = "";
                 for (int j = 0; j < seq[i].Length; j++)
                     lines[i] += seq[i][j].ToString() + ", ";
             }
@@ -312,12 +316,11 @@ namespace _2048
                 foreach (string line in lines)
                     file.WriteLine(line);
 
-            scoreLab.Visible = true;
         }
 
-        void reorder(ref int[][] A, int[] order)
+        void reorder(ref byte[][] A, int[] order)
         {
-            int[][] tempA = new int[A.Length][]; //sorts seq by order
+            byte[][] tempA = new byte[A.Length][]; //sorts seq by order
             tempA = A;
             for (int i = 0; i < A.Length; i++)
                 A[i] = tempA[order[i]];
@@ -368,7 +371,7 @@ namespace _2048
             }
         }
 
-        void mutation(ref int[][] s)
+        void mutation(ref byte[][] s)
         {
             for (int i = 20; i < 120; i+=5)
             {
@@ -379,6 +382,7 @@ namespace _2048
                 duplication(ref s[i + 1], r.Next(s[i + 1].Length - length), length);
 
                 length = r.Next(s[i + 2].Length - 1);
+                if (length > 10) length = 10;
                 inversion(ref s[i + 2], r.Next(s[i + 2].Length - length), length);
 
                 int rseq = r.Next(20);
@@ -392,43 +396,43 @@ namespace _2048
             }
         }
 
-        void deletion(ref int[] sequence, int position, int length)
+        void deletion(ref byte[] sequence, int position, int length)
         {
-            int[] newSequence = new int [sequence.Length - length];
+            byte[] newSequence = new byte [sequence.Length - length];
 
             for (int i = 0; i < newSequence.Length; i++)
                 newSequence[i] = (i < position) ? sequence[i] : sequence[i + length];
 
-            sequence = new int[newSequence.Length];
+            sequence = new byte[newSequence.Length];
             sequence = newSequence;
         }
 
-        void duplication(ref int[] sequence, int position, int length)
+        void duplication(ref byte[] sequence, int position, int length)
         {
-            int[] newSequence = new int[sequence.Length + length];
+            byte[] newSequence = new byte[sequence.Length + length];
 
             for (int i = 0; i < newSequence.Length; i++)
                 newSequence[i] = (i < position + length) ? sequence[i] : sequence[i - length];
 
-            sequence = new int[newSequence.Length];
+            sequence = new byte[newSequence.Length];
             sequence = newSequence;
         }
 
-        void inversion(ref int[] sequence, int position, int length)
+        void inversion(ref byte[] sequence, int position, int length)
         {
-            int[] newSequence = new int[sequence.Length];
+            byte[] newSequence = new byte[sequence.Length];
 
             for (int i = 0; i < newSequence.Length; i++)
                 newSequence[i] = (i < position || i>=position + length) ? sequence[i] : sequence[position + length - (i - position + 1)];
 
-            sequence = new int[newSequence.Length];
+            sequence = new byte[newSequence.Length];
             sequence = newSequence;
         }
         
-        void insertion(ref int[] sequence1, ref int[] sequence2, int position1, int position2, int length)
+        void insertion(ref byte[] sequence1, ref byte[] sequence2, int position1, int position2, int length)
         {
-            int[] newSequence1 = new int[sequence1.Length + length];
-            int[] newSequence2 = new int[sequence2.Length - length];
+            byte[] newSequence1 = new byte[sequence1.Length + length];
+            byte[] newSequence2 = new byte[sequence2.Length - length];
 
             for (int i = 0; i < newSequence1.Length; i++)
                 if (i < position1) newSequence1[i] = sequence1[i];
@@ -438,17 +442,17 @@ namespace _2048
             for (int i = 0; i < newSequence2.Length; i++)
                 newSequence2[i] = (i < position2) ? sequence2[i] : sequence2[i + length];
 
-            sequence1 = new int[newSequence1.Length];
+            sequence1 = new byte[newSequence1.Length];
             sequence1 = newSequence1;
 
-            sequence2 = new int[newSequence2.Length];
+            sequence2 = new byte[newSequence2.Length];
             sequence2 = newSequence2;
         }
 
-        void transposition(ref int[] sequence1, ref int[] sequence2, int position1, int position2, int length1, int length2)
+        void transposition(ref byte[] sequence1, ref byte[] sequence2, int position1, int position2, int length1, int length2)
         {
-            int[] newSequence1 = new int[sequence1.Length + length1 - length2];
-            int[] newSequence2 = new int[sequence2.Length + length2 - length1];
+            byte[] newSequence1 = new byte[sequence1.Length + length1 - length2];
+            byte[] newSequence2 = new byte[sequence2.Length + length2 - length1];
 
             for (int i = 0; i < newSequence1.Length; i++)
                 if (i < position1) newSequence1[i] = sequence1[i];
@@ -460,10 +464,10 @@ namespace _2048
                 else if (i >= position2 && i < position2 + length2) newSequence2[i] = sequence1[position1 + i - position2];
                 else newSequence2[i] = sequence2[i - length2 + length1];
 
-            sequence1 = new int[newSequence1.Length];
+            sequence1 = new byte[newSequence1.Length];
             sequence1 = newSequence1;
 
-            sequence2 = new int[newSequence2.Length];
+            sequence2 = new byte[newSequence2.Length];
             sequence2 = newSequence2;
         }
 
@@ -502,6 +506,7 @@ namespace _2048
         {
             if (e.KeyCode == Keys.R) NewGame(true);
             if (e.KeyCode == Keys.A) AI();
+            if (e.KeyCode == Keys.S) sequence(new byte[] { 1, 3, 0, 0, 2, 3, 1, 2, 1, 3, 1, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 3, 1, 2, 1, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 3, 2, 1, 1, 2, 2, 2, 1, 3, 1, 1, 3, 1, 2, 1, 1, 3, 2, 1, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 1, 3, 2, 1, 3, 1, 1, 2, 1, 2, 1, 3, 1, 2, 1, 2, 1, 1, 3, 2, 1, 3, 1, 2, 2, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 3, 1, 1, 2, 1, 2, 2, 1, 3, 1, 1, 2, 3, 1, 2, 2, 1, 3, 1, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 3, 1, 2, 1, 1, 3, 2, 1, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 1, 3, 2, 1, 3, 1, 2, 0, 1, 0, 1, 2, 2, 0, 0, 3, 3, 3, 0, 1, 1, 3, 3, 2, 1, 3, 0, 3, 3, 1, 2, 2, 3, 3, 0, 2, 1, 3, 2, 3, 3, 0, 2, 1, 3, 1, 2, 1, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 2, 1, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 1, 3, 2, 1, 3, 1, 1, 2, 1, 2, 1, 3, 1, 2, 1, 2, 1, 1, 3, 2, 1, 2, 1, 3, 1, 1, 2, 1, 2, 3, 3, 0, 0, 3, 3, 0, 1, 1, 1, 2, 2, 1, 2, 2, 1, 3, 1, 2, 3, 3, 1, 3, 3, 0, 1, 1, 3, 3, 0, 3, 2, 0, 2, 3, 3, 1, 2, 0, 0, 1, 3, 2, 1, 2, 2, 0, 1, 0, 1, 2, 2, 0, 0, 3, 3, 3, 0, 1, 1, 3, 3, 2, 1, 3, 0, 3, 3, 1, 2, 2, 3, 3, 0, 2, 1, 3, 2, 3, 3, 0, 2, 1, 3, 1, 2, 1, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 3, 1, 1, 1, 3, 2, 1, 3, 1, 1, 2, 1, 3, 1, 1, 2, 1, 2, 1, 2, 2, 1, 3, 1, 2, 1, 3, 1, 3, 1, 2, 3, 1, 1, 2, 2, 2, 1, 1, 1, 1, 2, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 3, 3, 1, 1, 3, 1, 2, 2, 2, 1, 1, 1, 1, 2, 1, 3, 1, 1, 3, 1, 2, 1, 3, 1, 2, 3, 2, 3, 3, 1, 2, 2, 1, 2, 1, 3, 1, 2, 1, 2, 2, 1, 3, 1, 1, 2, 3, 1, 2, 2, 1, 3, 1, 2, 1, 2, 2, 1, 3, 1, 2, 1, 1, 3, 1, 2, 2, 1, 0, 2, 0, 3, 3});
             if (!game_over)
             { 
                 if (e.KeyCode == Keys.Up) moveUp();
